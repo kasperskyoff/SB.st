@@ -21,7 +21,7 @@ surface.CreateFont("ScoreBoardMore", {
 
 local function cache_nick(ply)
     if not ec_markup or not ply or not ply.RichNick then
-        return nil -- Возвращаем nil, если ec_markup или RichNick отсутствует
+        return nil
     end
 
     local nick_cache = ec_markup.AdvancedParse(ply:RichNick(), {
@@ -289,35 +289,59 @@ do
                 local ping = ply:Ping() .. "ms"
                 local time = ply.GetSQLTimeTotalTime and ply:GetSQLTimeTotalTime() or 0
                 local time_disp = string.FormattedTime(time)
-                local formatted_time = string.format("%02d:%02d:%02d", time_disp.h, time_disp.m, time_disp.s)                
-                local mode = !ply:GetNWBool("BuildMode") and "Строитель" or "ПВП-режим"
+                local formatted_time = string.format("%02d:%02d:%02d", time_disp.h or 0, time_disp.m or 0, time_disp.s or 0)
+            
+                local mode = not ply:GetNWBool("BuildMode") and "Строитель" or "ПВП-режим"
+            
                 local markup2 = cache_nick(ply)
                 if markup2 then
                     markup2:Draw(w * .03 + 32, h / 2 - markup2:GetTall() / 2 * self.smooth)
                 else
                     draw.SimpleText(ply:Name(), "ScoreBoardMore", w * .03 + 32, h / 2, Color(255, 255, 255), TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
-                end      
-          
+                end
+            
                 local teamcolor = team.GetColor(ply:Team())
-        
                 teamcolor.a = self.alpha
-                -- markup2:Draw(w * .03 + 32, h / 2 - markup2:GetTall() / 2 * self.smooth)
-
+            
                 surface.SetFont("ScoreBoardMore")
                 local pingWidth = surface.GetTextSize(ping)
-        
+            
                 self.timePosX = w - pingWidth - w * 0.06
                 self.modePosX = self.timePosX - w * 0.1
-                
+            
                 draw.SimpleText(ping, "ScoreBoardMore", w / 1.03, h / 2, HSVToColor(140 - math.Clamp(ply:Ping(), 0, 100) * 1.2, 1, 1), TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
-                
+            
                 if self.isExpanded then
-                    draw.SimpleText("Кол-во энтити: ".. ply:GetCount("sents") + ply:GetCount("props"), "ScoreBoard", self.timePosX, h * 0.75, Color(255, 255, 255, self.alpha), TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
-                    draw.SimpleText(team.GetName(ply:Team()), "ScoreBoard", w * .03 + 32, h / 1.5 * self.smootha, teamcolor, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
-                    draw.SimpleText(time_disp, "ScoreBoard", self.timePosX, h / 2, Color(255, 255, 255, self.alpha), TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
-                    draw.SimpleText(mode, "ScoreBoard", self.modePosX, h / 2, !ply:GetNWBool("BuildMode") and Color(111, 111, 255, self.alpha) or Color(255, 122, 122, self.alpha), TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
+                    draw.SimpleText("Кол-во энтити: " .. (ply:GetCount("sents") + ply:GetCount("props")), "ScoreBoard", self.timePosX, h * 0.75,
+                        Color(255, 255, 255, self.alpha), TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
+                    draw.SimpleText(team.GetName(ply:Team()), "ScoreBoard", w * .03 + 32,
+                        h / 1.5 * self.smootha,
+                        teamcolor,
+                        TEXT_ALIGN_LEFT,
+                        TEXT_ALIGN_CENTER)
+                    draw.SimpleText(formatted_time,
+                        "ScoreBoard",
+                        self.timePosX,
+                        h / 2,
+                        Color(255, 255, 255,
+                            self.alpha),
+                        TEXT_ALIGN_RIGHT,
+                        TEXT_ALIGN_CENTER)
+                    draw.SimpleText(mode,
+                        "ScoreBoard",
+                        self.modePosX,
+                        h / 2,
+                        not ply:GetNWBool("BuildMode") and Color(111,
+                            111,
+                            255,
+                            self.alpha) or Color(255,
+                            122,
+                            122,
+                            self.alpha),
+                        TEXT_ALIGN_RIGHT,
+                        TEXT_ALIGN_CENTER)
                 end
-            end
+            end            
         end
 
         card.mainButton = vgui.Create("DButton", card)
@@ -386,20 +410,10 @@ do
 
         
             local countryName = countryNames[string.lower(data)] or "? ? ?"
-            
-            
 
-            if ply:SteamID() == "STEAM_0:0:176677090" then
-                menu:AddOption('Страна: ' .. "Япония", function() 
-                end):SetIcon('flags16/' .. "jp" .. '.png')
-            elseif ply:SteamID() == "STEAM_0:1:862057453" then
-                menu:AddOption('Страна: ' .. "Солнечный Sandbox", function() 
-                end):SetIcon('icon16/asterisk_yellow.png')
-            else
-                menu:AddOption('Страна: ' .. countryName, function() 
-                end):SetIcon('flags16/' .. string.lower(data) .. '.png')
-            end
-
+            menu:AddOption('Страна: ' .. countryName, function() 
+            end):SetIcon('flags16/' .. string.lower(data) .. '.png')
+            
             menu:AddOption(ply:SteamID(), function()
                 SetClipboardText(ply:SteamID())
             end):SetIcon('icon16/paste_plain.png')
@@ -631,9 +645,9 @@ local function init()
             local timeB = b.GetSQLTimeTotalTime and b:GetSQLTimeTotalTime() or 0
         
             if a:Team() == b:Team() then
-                return timeB < timeA -- Сортировка по времени в рамках одной команды
+                return timeB < timeA
             else
-                return a:Team() < b:Team() -- Сортировка по командам
+                return a:Team() < b:Team()
             end
         end)
         

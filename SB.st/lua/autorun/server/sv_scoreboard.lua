@@ -2,21 +2,9 @@ util.AddNetworkString("RequestPlayerLink")
 
 local function GetCountry( co, ip )
     http.Fetch('https://api.country.is/' .. ip, function(body, _, _, code)
-
-        if code != 200 then 
-            print('[SCOREBOARD-API-ERR] ' .. code .. ' ' .. body)
-            co = nil
-            return
-        end
-    
         local result = util.JSONToTable(body)
         coroutine.resume(co, result['country'])
-        
-    end, function(err) 
-        print('[SCOREBOARD-API-ERR] ' .. err) 
-        co = nil 
-    end, {})
-    
+    end)
 end
 
 net.Receive("RequestPlayerLink", function(len, ply)
