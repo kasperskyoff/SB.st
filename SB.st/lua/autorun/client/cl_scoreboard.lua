@@ -20,20 +20,23 @@ surface.CreateFont("ScoreBoardMore", {
 })
 
 local function cache_nick(ply)
-    if not ec_markup or not ply or not ply.RichNick then
+    if not ec_markup or not ply then
         return nil
     end
 
+    if ply == LocalPlayer() and not ply.RichNick then
+        return nil
+    end
+    
     local nick_cache = ec_markup.AdvancedParse(ply:RichNick(), {
         nick = true,
         no_shadow = true,
         default_font = "ScoreBoardMore",
         default_color = team.GetColor(ply:Team()),
     })
-
+    
     return nick_cache
 end
-
 
 
 local ScoreBoard
@@ -288,19 +291,25 @@ do
                 local name = ply:Name()
                 local ping = ply:Ping() .. "ms"
                 local time = ply.GetSQLTimeTotalTime and ply:GetSQLTimeTotalTime() or 0
-                local time_disp = string.FormattedTime(time)
-                local formatted_time = string.format("%02d:%02d:%02d", time_disp.h or 0, time_disp.m or 0, time_disp.s or 0)
-            
+                local session_time = CurTime() - (ply:GetNWFloat("SessionStart", CurTime()))
+                local total_time = time + session_time
+                local time_disp = string.FormattedTime(total_time)
+                local formatted_time = string.format("%02d:%02d:%02d", time_disp.h or 0, time_disp.m or 0, time_disp.s or 0)  
                 local mode = not ply:GetNWBool("BuildMode") and "Строитель" or "ПВП-режим"
-            
-                local markup2 = cache_nick(ply)
+                local markup2 = cache_nick(ply)                  
+                local xPos = math.Clamp(w * .03 + 32, 0, w)
+                local yPos = math.Clamp(h / 2 - (markup2 and markup2:GetTall() or surface.GetTextSize(ply:Name())) / 2 * self.smooth, 0, h)
+                local teamcolor = team.GetColor(ply:Team())
+
+                draw.SimpleText(formatted_time, "ScoreBoard", self.timePosX, h / 2, Color(255, 255, 255, self.alpha), TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
+                teamcolor.a = 255  -- Показывает ники, а то обычно скрыты
+
                 if markup2 then
                     markup2:Draw(w * .03 + 32, h / 2 - markup2:GetTall() / 2 * self.smooth)
                 else
-                    draw.SimpleText(ply:Name(), "ScoreBoardMore", w * .03 + 32, h / 2, Color(255, 255, 255), TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+                    draw.SimpleText(ply:Name(), "ScoreBoardMore", w * .03 + 32, h / 2, teamcolor, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
                 end
-            
-                local teamcolor = team.GetColor(ply:Team())
+
                 teamcolor.a = self.alpha
             
                 surface.SetFont("ScoreBoardMore")
@@ -639,11 +648,13 @@ local function init()
 
     local function UpdatePlayerPanels()
         local players = player.GetAll()
-
         table.sort(players, function(a, b)
             local timeA = a.GetSQLTimeTotalTime and a:GetSQLTimeTotalTime() or 0
             local timeB = b.GetSQLTimeTotalTime and b:GetSQLTimeTotalTime() or 0
-        
+
+            if a == LocalPlayer() then return true end
+            if b == LocalPlayer() then return false end
+    
             if a:Team() == b:Team() then
                 return timeB < timeA
             else
