@@ -7,15 +7,15 @@ local function GetCountry( co, ip )
     end)
 end
 
-net.Receive("RequestPlayerLink", function(len, ply)
-    local target = net.ReadEntity()
-    if not IsValid(target) then return end
+-- net.Receive("RequestPlayerLink", function(len, ply)
+--     local target = net.ReadEntity()
+--     if not IsValid(target) then return end
 
-    local link = "http://example.com/profile/" .. target:SteamID()
-    net.Start("RequestPlayerLink")
-    net.WriteString(link)
-    net.Send(ply)
-end)
+--     local link = "http://example.com/profile/" .. target:SteamID()
+--     net.Start("RequestPlayerLink")
+--     net.WriteString(link)
+--     net.Send(ply)
+-- end)
 
 hook.Add( 'PlayerInitialSpawn', '_scoreboard_country', function(ply)
 

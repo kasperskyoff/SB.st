@@ -575,8 +575,18 @@ local function init()
     BackgroundBlur:Center()
     BackgroundBlur.Paint = function(self, w, h)
         draw.RoundedBox(0, 0, 0, w, h, Color(0, 0, 0, 150))
-        -- DrawBlurRect(0, 0, w, h, 5) 
+        --DrawBlurRect(0, 0, w, h, 5)
+
+        local text = "Солнечный Sandbox"
+        local suntext = "☀"
+        local font = "ScoreBoardMore"
+        local color = Color(255, 255, 255)
+        
+        draw.SimpleText(suntext, font, 870, 29, Color(255, 163, 3), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        draw.SimpleText(text, font, w/2 + 2, 30 + 2, Color(0, 0, 0, 180), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        draw.SimpleText(text, font, w/2, 30, color, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
     end
+    
     BackgroundBlur:AlphaTo(255, 0.25, 0)
 
     local screenW, screenH = ScrW(), ScrH()
